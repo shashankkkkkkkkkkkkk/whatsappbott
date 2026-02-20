@@ -50,12 +50,10 @@ app.post("/webhook", async (req, res) => {
 
     console.log("User said:", userMessage);
 
-    // Get AI reply
-    const aiReply = await getGeminiReply(userMessage);
+    const aiReply = await getAIReply(userMessage);
 
     console.log("AI Reply:", aiReply);
 
-    // Send reply back to WhatsApp
     await sendWhatsAppMessage(from, aiReply);
 
     console.log("Reply sent successfully");
@@ -69,17 +67,17 @@ app.post("/webhook", async (req, res) => {
 });
 
 // ===============================
-// GEMINI AI FUNCTION
+// AI FUNCTION (OPENROUTER)
 // ===============================
-async function getGeminiReply(userMessage) {
+async function getAIReply(userMessage) {
   const response = await axios.post(
-  `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    "https://openrouter.ai/api/v1/chat/completions",
     {
-      contents: [
+      model: "google/gemini-flash-1.5",
+      messages: [
         {
-          parts: [
-            {
-              text: `
+          role: "system",
+          content: `
 You are a premium WhatsApp sales assistant for Desi Life Milk.
 
 Business Details:
@@ -93,19 +91,24 @@ Your Role:
 - Reply short and confident.
 - Sound premium but friendly.
 - Encourage subscriptions naturally.
-- Answer pricing, delivery, and product questions clearly.
-- If someone just says "hi", greet and ask how you can help.
-
-Customer message: ${userMessage}
+- If someone says "hi", greet and ask how you can help.
 `
-            }
-          ]
+        },
+        {
+          role: "user",
+          content: userMessage
         }
       ]
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      }
     }
   );
 
-  return response.data.candidates[0].content.parts[0].text;
+  return response.data.choices[0].message.content;
 }
 
 // ===============================
@@ -128,7 +131,6 @@ async function sendWhatsAppMessage(to, message) {
   );
 }
 
-// ===============================
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
