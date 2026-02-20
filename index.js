@@ -1,30 +1,45 @@
 const express = require("express");
-const bodyParser = require("body-parser");
+const axios = require("axios");
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// Verification Endpoint
+// ===============================
+// ROOT ROUTE (for testing)
+// ===============================
+app.get("/", (req, res) => {
+  res.send("WhatsApp Bot Running 🚀");
+});
+
+// ===============================
+// WEBHOOK VERIFICATION
+// ===============================
 app.get("/webhook", (req, res) => {
-  const verify_token = "EAARTBZBJTyZCEBQscJIydwsb9vInESaIhnzIkRZAy0PZA6O9WIIGL1usiZCWCQFkaBA0EAZC1cV0dZAdzAZBCRI1XEw2N7ZAJ6vuJWBZAXoPkFQ6lnJeZA07WI2CkHW6kfhYlSjXwzv2uuvfqvZCYfn7SbUBP4zhhEUkAJ61nnywMGM3ry3u7nSZA6hLznZA0fTX9AAxhtibO8ZAzMtxidXsmUs4zfBib5HuZC2OZBt3Dsd4dcxLkNtQ5nWt0SrUxFQyoy6SavJdGrOZBaEdg4ovwnRnXv1d0yvhyl";
+  const VERIFY_TOKEN = "desilife123"; // must match Meta dashboard
 
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode && token === verify_token) {
-    res.status(200).send(challenge);
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("Webhook verified successfully");
+    return res.status(200).send(challenge);
   } else {
-    res.sendStatus(403);
+    return res.sendStatus(403);
   }
 });
 
-// Webhook for Messages
-app.post("/webhook", (req, res) => {
-  console.log(JSON.stringify(req.body, null, 2));
+// ===============================
+// RECEIVE MESSAGES
+// ===============================
+app.post("/webhook", async (req, res) => {
+  console.log("Incoming message:", JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ===============================
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
