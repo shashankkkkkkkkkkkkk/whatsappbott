@@ -7,12 +7,16 @@ app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 3000;
 
-// Root test
+// ===============================
+// ROOT TEST
+// ===============================
 app.get("/", (req, res) => {
-  res.send("WhatsApp AI Bot Running 🚀");
+  res.send("Desi Life Milk AI WhatsApp Bot Running 🚀");
 });
 
-// Webhook verification
+// ===============================
+// WEBHOOK VERIFICATION
+// ===============================
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -26,29 +30,47 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// Handle incoming messages
+// ===============================
+// HANDLE INCOMING MESSAGES
+// ===============================
 app.post("/webhook", async (req, res) => {
   try {
-    const body = req.body;
+    console.log("Incoming webhook triggered");
 
-    if (body.entry && body.entry[0].changes[0].value.messages) {
-      const message = body.entry[0].changes[0].value.messages[0];
-      const from = message.from;
-      const userMessage = message.text.body;
+    const message =
+      req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-      const aiReply = await getGeminiReply(userMessage);
-
-      await sendWhatsAppMessage(from, aiReply);
+    if (!message) {
+      console.log("No message found");
+      return res.sendStatus(200);
     }
 
+    const from = message.from;
+    const userMessage = message.text?.body;
+
+    console.log("User said:", userMessage);
+
+    // Get AI reply
+    const aiReply = await getGeminiReply(userMessage);
+
+    console.log("AI Reply:", aiReply);
+
+    // Send reply back to WhatsApp
+    await sendWhatsAppMessage(from, aiReply);
+
+    console.log("Reply sent successfully");
+
     res.sendStatus(200);
+
   } catch (error) {
-    console.error("Error:", error);
+    console.error("ERROR:", error.response?.data || error.message);
     res.sendStatus(500);
   }
 });
 
-// Gemini AI function
+// ===============================
+// GEMINI AI FUNCTION
+// ===============================
 async function getGeminiReply(userMessage) {
   const response = await axios.post(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -57,9 +79,25 @@ async function getGeminiReply(userMessage) {
         {
           parts: [
             {
-              text: `You are a professional WhatsApp business assistant. 
-              Reply short, helpful, confident, and business-focused.
-              User message: ${userMessage}`
+              text: `
+You are a premium WhatsApp sales assistant for Desi Life Milk.
+
+Business Details:
+- They sell A2 Desi Cow Milk.
+- Fresh farm milk delivered to homes.
+- Focus on purity, health, and premium quality.
+- Offer daily and monthly subscriptions.
+- Home delivery available.
+
+Your Role:
+- Reply short and confident.
+- Sound premium but friendly.
+- Encourage subscriptions naturally.
+- Answer pricing, delivery, and product questions clearly.
+- If someone just says "hi", greet and ask how you can help.
+
+Customer message: ${userMessage}
+`
             }
           ]
         }
@@ -70,7 +108,9 @@ async function getGeminiReply(userMessage) {
   return response.data.candidates[0].content.parts[0].text;
 }
 
-// Send WhatsApp message
+// ===============================
+// SEND MESSAGE BACK TO WHATSAPP
+// ===============================
 async function sendWhatsAppMessage(to, message) {
   await axios.post(
     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -88,4 +128,7 @@ async function sendWhatsAppMessage(to, message) {
   );
 }
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ===============================
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
