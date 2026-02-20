@@ -1,83 +1,23 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const axios = require("axios");
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// ===============================
-// ROOT TEST
-// ===============================
-app.get("/", (req, res) => {
-  res.send("Desi Life Milk AI WhatsApp Bot Running 🚀");
-});
+/*
+====================================
+MULTI-CLIENT CONFIG
+====================================
+In future you can move this to DB.
+For now we keep it structured.
+*/
 
-// ===============================
-// WEBHOOK VERIFICATION
-// ===============================
-app.get("/webhook", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-    console.log("Webhook verified successfully");
-    return res.status(200).send(challenge);
-  } else {
-    return res.sendStatus(403);
-  }
-});
-
-// ===============================
-// HANDLE INCOMING MESSAGES
-// ===============================
-app.post("/webhook", async (req, res) => {
-  try {
-    console.log("Incoming webhook triggered");
-
-    const message =
-      req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-
-    if (!message) {
-      console.log("No message found");
-      return res.sendStatus(200);
-    }
-
-    const from = message.from;
-    const userMessage = message.text?.body;
-
-    console.log("User said:", userMessage);
-
-    const aiReply = await getAIReply(userMessage);
-
-    console.log("AI Reply:", aiReply);
-
-    await sendWhatsAppMessage(from, aiReply);
-
-    console.log("Reply sent successfully");
-
-    res.sendStatus(200);
-
-  } catch (error) {
-    console.error("ERROR:", error.response?.data || error.message);
-    res.sendStatus(500);
-  }
-});
-
-// ===============================
-// AI FUNCTION (OPENROUTER)
-// ===============================
-async function getAIReply(userMessage) {
-  const response = await axios.post(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-   model: "openai/gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: `
+const clients = {
+  desilife: {
+    name: "Desi Life Milk",
+    systemPrompt: `
 You are a premium WhatsApp sales assistant for Desi Life Milk.
 
 Business Details:
@@ -87,12 +27,104 @@ Business Details:
 - Offer daily and monthly subscriptions.
 - Home delivery available.
 
-Your Role:
+Rules:
 - Reply short and confident.
-- Sound premium but friendly.
 - Encourage subscriptions naturally.
-- If someone says "hi", greet and ask how you can help.
+- Be premium but friendly.
 `
+  }
+};
+
+/*
+====================================
+ROOT
+====================================
+*/
+app.get("/", (req, res) => {
+  res.send("AI WhatsApp Bot Running 🚀");
+});
+
+/*
+====================================
+WEBHOOK VERIFICATION
+====================================
+*/
+app.get("/webhook", (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+    console.log("Webhook verified");
+    return res.status(200).send(challenge);
+  }
+  return res.sendStatus(403);
+});
+
+/*
+====================================
+DUPLICATE MESSAGE PROTECTION
+====================================
+*/
+const processedMessages = new Set();
+
+/*
+====================================
+INCOMING MESSAGE HANDLER
+====================================
+*/
+app.post("/webhook", async (req, res) => {
+  try {
+    const message =
+      req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+
+    if (!message) return res.sendStatus(200);
+
+    const messageId = message.id;
+
+    // Prevent duplicate replies
+    if (processedMessages.has(messageId)) {
+      console.log("Duplicate message ignored");
+      return res.sendStatus(200);
+    }
+
+    processedMessages.add(messageId);
+
+    const from = message.from;
+    const userMessage = message.text?.body;
+
+    console.log("User:", userMessage);
+
+    const aiReply = await generateAIReply("desilife", userMessage);
+
+    await sendWhatsAppMessage(from, aiReply);
+
+    console.log("Reply sent");
+
+    res.sendStatus(200);
+
+  } catch (error) {
+    console.error("ERROR:", error.response?.data || error.message);
+    res.sendStatus(500);
+  }
+});
+
+/*
+====================================
+AI GENERATION FUNCTION
+====================================
+*/
+async function generateAIReply(clientKey, userMessage) {
+  const client = clients[clientKey];
+
+  const response = await axios.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      model: "openai/gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: client.systemPrompt
         },
         {
           role: "user",
@@ -111,9 +143,11 @@ Your Role:
   return response.data.choices[0].message.content;
 }
 
-// ===============================
-// SEND MESSAGE BACK TO WHATSAPP
-// ===============================
+/*
+====================================
+SEND MESSAGE TO WHATSAPP
+====================================
+*/
 async function sendWhatsAppMessage(to, message) {
   await axios.post(
     `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
@@ -131,6 +165,11 @@ async function sendWhatsAppMessage(to, message) {
   );
 }
 
+/*
+====================================
+START SERVER
+====================================
+*/
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
