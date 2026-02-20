@@ -73,7 +73,7 @@ async function getAIReply(userMessage) {
   const response = await axios.post(
     "https://openrouter.ai/api/v1/chat/completions",
     {
-      model: "google/gemini-flash-1.5",
+   model: "openai/gpt-3.5-turbo",
       messages: [
         {
           role: "system",
