@@ -22,16 +22,15 @@ app.get("/webhook", (req, res) => {
   const challenge = req.query["hub.challenge"];
 
   console.log("Mode:", mode);
-  console.log("Token from Meta:", token);
-  console.log("Token in ENV:", process.env.VERIFY_TOKEN);
+  console.log("Token from URL:", token);
+  console.log("ENV VERIFY_TOKEN:", process.env.VERIFY_TOKEN);
 
   if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-    console.log("Webhook verified!");
     return res.status(200).send(challenge);
   } else {
-    console.log("Verification failed");
-    return res.sendStatus(403);
+    return res.status(403).send("Verification failed");
   }
+});
 });
 
 // Handle Incoming Messages
