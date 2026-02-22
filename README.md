@@ -74,6 +74,53 @@ Lead Captured for Business
 
 ---
 
-## 🔐 Environment Variables
+🌍 Deployment
+
+Deployed using:
+
+✅ Render Cloud Platform
+✅ Public Webhook Endpoint
+✅ Production WhatsApp Integration
+
+💼 Use Cases
+
+Real Estate Lead Automation
+
+Milk / Subscription Businesses
+
+Clinics & Appointment Booking
+
+Local Service Businesses
+
+Customer Support Automation
+
+Sales Inquiry Handling
+
+🏢 About FenxAI
+
+FenxAI builds AI automation systems that help businesses:
+
+Automate customer communication
+
+Capture leads instantly
+
+Improve response time
+
+Scale operations efficiently
+
+👨‍💻 Author
+
+Shashank
+Founder — FenxAI
+
+🔗 GitHub: https://github.com/shashankkkkkkkkkkkkk
+
+🤝 Contributions
+
+Open to collaboration with developers and automation enthusiasts.
+
+⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
 
 Create a `.env` file:
