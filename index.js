@@ -118,6 +118,7 @@ app.post("/webhook", async (req, res) => {
 
     // Determine client (default to toniguy, can add logic for routing)
     const clientKey = req.headers["x-client"] || process.env.DEFAULT_CLIENT || "toniguy";
+    console.log(`🤖 Using client: ${clientKey}`);
 
     // Initialize conversation if not exists
     if (!conversations[from]) {
@@ -154,27 +155,37 @@ app.post("/webhook", async (req, res) => {
 async function generateAIReply(clientKey, messageHistory) {
   const client = clients[clientKey];
 
-  const response = await axios.post(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      model: "openai/gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: client.systemPrompt
-        },
-        ...messageHistory
-      ]
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
-      }
-    }
-  );
+  if (!client) {
+    console.error(`❌ Client not found: ${clientKey}`);
+    return "Sorry, configuration error. Please try again.";
+  }
 
-  return response.data.choices[0].message.content;
+  try {
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "openai/gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: client.systemPrompt
+          },
+          ...messageHistory
+        ]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    return response.data.choices[0].message.content;
+  } catch (error) {
+    console.error(`❌ AI API Error:`, error.response?.data || error.message);
+    return "I'm temporarily unavailable. Please try again later.";
+  }
 }
 
 /* ====================================
