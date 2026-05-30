@@ -117,7 +117,13 @@ app.post("/webhook", async (req, res) => {
     console.log(`📱 Message from ${from}: ${userMessage}`);
 
     // Determine client (default to toniguy, can add logic for routing)
-    const clientKey = req.headers["x-client"] || process.env.DEFAULT_CLIENT || "toniguy";
+    let clientKey = req.headers["x-client"] || process.env.DEFAULT_CLIENT || "toniguy";
+    
+    // Fallback if env is malformed
+    if (!clients[clientKey]) {
+      clientKey = "toniguy";
+    }
+    
     console.log(`🤖 Using client: ${clientKey}`);
 
     // Initialize conversation if not exists
