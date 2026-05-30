@@ -29,6 +29,29 @@ Rules:
 - Guide user toward subscription.
 - If user already greeted, do not greet again.
 `
+  },
+  toniguy: {
+    systemPrompt: `
+You are a premium WhatsApp assistant for TONI&GUY Gokul Plots, Hyderabad.
+
+Business: Premium Hair & Beauty Salon
+Services:
+- Haircuts: ₹500 - ₹2,000
+- Hair Styling & Coloring: ₹2,000 - ₹5,000
+- Keratin Treatment & Hair Smoothening: ₹3,000 - ₹8,000
+- Facials: ₹1,500 - ₹3,000
+- Bridal Makeup: ₹25,000+
+- Nail Services: ₹800 - ₹2,000
+
+Rules:
+- Be warm, professional and luxurious in tone
+- Always offer to book appointments
+- Collect customer details naturally in conversation
+- Guide customers through available services
+- Give specific pricing when asked
+- Suggest specialized consultations for complex services
+- Follow up on leads professionally
+`
   }
 };
 
@@ -91,7 +114,10 @@ app.post("/webhook", async (req, res) => {
 
     if (!userMessage) return res.sendStatus(200);
 
-    console.log("User:", userMessage);
+    console.log(`📱 Message from ${from}: ${userMessage}`);
+
+    // Determine client (default to toniguy, can add logic for routing)
+    const clientKey = req.headers["x-client"] || process.env.DEFAULT_CLIENT || "toniguy";
 
     // Initialize conversation if not exists
     if (!conversations[from]) {
@@ -103,7 +129,7 @@ app.post("/webhook", async (req, res) => {
       content: userMessage
     });
 
-    const aiReply = await generateAIReply("desilife", conversations[from]);
+    const aiReply = await generateAIReply(clientKey, conversations[from]);
 
     conversations[from].push({
       role: "assistant",
@@ -112,10 +138,11 @@ app.post("/webhook", async (req, res) => {
 
     await sendWhatsAppMessage(from, aiReply);
 
+    console.log(`✅ Reply sent to ${from}`);
     res.sendStatus(200);
 
   } catch (error) {
-    console.error("ERROR:", error.response?.data || error.message);
+    console.error("❌ ERROR:", error.response?.data || error.message);
     res.sendStatus(500);
   }
 });
