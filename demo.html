@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TONI&GUY WhatsApp Automation Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            color: #d4af37;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #bbb;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .chat-card {
+            background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .chat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .chat-card.active {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #2a2a2a 0%, #333 100%);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+            padding: 15px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .chat-body {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            background: #1f1f1f;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-in;
+        }
+
+        .customer-msg {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .customer-msg .bubble {
+            display: inline-block;
+            background: #0084ff;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .ai-msg .bubble {
+            display: inline-block;
+            background: #e5e5ea;
+            color: #000;
+            padding: 12px 15px;
+            border-radius: 15px;
+            max-width: 85%;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .button-group {
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            background: #2a2a2a;
+            border-top: 1px solid #444;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .demo-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+
+        .demo-btn:active {
+            transform: scale(0.98);
+        }
+
+        .metrics-section {
+            background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .metrics-title {
+            text-align: center;
+            font-size: 2em;
+            color: #d4af37;
+            margin-bottom: 40px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #333 100%);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #d4af37;
+            transition: transform 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            color: #d4af37;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            color: #bbb;
+            font-size: 0.95em;
+        }
+
+        .flow-diagram {
+            background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .flow-title {
+            font-size: 1.8em;
+            color: #d4af37;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease-in;
+        }
+
+        .step-number {
+            background: #d4af37;
+            color: #000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #d4af37;
+        }
+
+        .step-content h3 {
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+
+        .step-content p {
+            color: #ccc;
+            font-size: 0.95em;
+        }
+
+        .arrow {
+            text-align: center;
+            color: #d4af37;
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            border-top: 1px solid #d4af37;
+            margin-top: 40px;
+        }
+
+        .checkmark {
+            color: #d4af37;
+            margin-right: 10px;
+        }
+
+        .slide-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .slide-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .slide-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .slide-btn.active {
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ TONI&GUY WhatsApp Automation ✨</h1>
+            <p>Gokul Plots, Hyderabad | Premium Hair & Beauty Automation Demo</p>
+        </div>
+
+        <div class="slide-buttons">
+            <button class="slide-btn active" onclick="showSection('chats')">Demo Chats</button>
+            <button class="slide-btn" onclick="showSection('flow')">Automation Flow</button>
+            <button class="slide-btn" onclick="showSection('metrics')">Analytics Dashboard</button>
+        </div>
+
+        <!-- Chat Demos Section -->
+        <div id="chats" class="section">
+            <div class="demo-grid">
+                <!-- Demo 1: New Customer -->
+                <div class="chat-card">
+                    <div class="chat-header">💬 New Customer Inquiry</div>
+                    <div class="chat-body" id="chat1">
+                        <div class="customer-msg message">
+                            <div class="bubble">Hi, what are your haircut prices?</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="demo-btn" onclick="addMessage(1, 'customer', 'Book an appointment')">Start Demo</button>
+                    </div>
+                </div>
+
+                <!-- Demo 2: Hair Color Lead -->
+                <div class="chat-card">
+                    <div class="chat-header">🎨 Hair Color Lead</div>
+                    <div class="chat-body" id="chat2">
+                        <div class="customer-msg message">
+                            <div class="bubble">I want balayage highlights</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="demo-btn" onclick="addMessage(2, 'customer', 'Show recommendation')">Start Demo</button>
+                    </div>
+                </div>
+
+                <!-- Demo 3: Bridal Inquiry -->
+                <div class="chat-card">
+                    <div class="chat-header">💍 Bridal Services</div>
+                    <div class="chat-body" id="chat3">
+                        <div class="customer-msg message">
+                            <div class="bubble">I need bridal makeup for wedding</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="demo-btn" onclick="addMessage(3, 'customer', 'Collect details')">Start Demo</button>
+                    </div>
+                </div>
+
+                <!-- Demo 4: Appointment Reminder -->
+                <div class="chat-card">
+                    <div class="chat-header">⏰ 24h Appointment Reminder</div>
+                    <div class="chat-body" id="chat4">
+                        <div class="ai-msg message">
+                            <div class="bubble">Hi Sarah 👋 This is a reminder of your appointment at TONI&GUY Gokul Plots</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="demo-btn" onclick="addMessage(4, 'ai', 'Show options')">Show Reminder</button>
+                    </div>
+                </div>
+
+                <!-- Demo 5: Missed Call Recovery -->
+                <div class="chat-card">
+                    <div class="chat-header">📞 Missed Call Recovery</div>
+                    <div class="chat-body" id="chat5">
+                        <div class="ai-msg message">
+                            <div class="bubble">Sorry we missed your call 😔</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="demo-btn" onclick="addMessage(5, 'ai', 'Show menu')">Show Message</button>
+                    </div>
+                </div>
+
+                <!-- Demo 6: Reactivation Campaign -->
+                <div class="chat-card">
+                    <div class="chat-header">🎁 Reactivation Campaign</div>
+                    <div class="chat-body" id="chat6">
+                        <div class="ai-msg message">
+                            <div class="bubble">Hi Sarah 👋 It's been a while since your last visit</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="demo-btn" onclick="addMessage(6, 'ai', 'Show offer')">Show Campaign</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Automation Flow Section -->
+        <div id="flow" class="section" style="display:none;">
+            <div class="flow-diagram">
+                <div class="flow-title">🔄 Complete Customer Journey Automation</div>
+
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>🎯 Lead Capture</h3>
+                        <p>WhatsApp inquiry → Automatic qualification → Lead database</p>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>📋 Service Recommendation</h3>
+                        <p>AI analyzes requirements → Personalized service suggestion</p>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>📅 Instant Booking</h3>
+                        <p>Date/time selection → Stylist assignment → Confirmation sent</p>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>⏰ Automated Reminders</h3>
+                        <p>24h before → 2h before → Confirmation request</p>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+
+                <div class="flow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>⭐ Post-Service Follow-up</h3>
+                        <p>Experience feedback → Review collection → Upsell recommendations</p>
+                    </div>
+                </div>
+                <div class="arrow">↓</div>
+
+                <div class="flow-step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <h3>🔄 Engagement & Retention</h3>
+                        <p>Personalized offers → Reactivation campaigns → Loyalty rewards</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard Section -->
+        <div id="metrics" class="section" style="display:none;">
+            <div class="metrics-section">
+                <div class="metrics-title">📊 Impact & Performance Metrics</div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">87%</div>
+                        <div class="metric-label"><span class="checkmark">✓</span>Faster Response Time</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">24/7</div>
+                        <div class="metric-label"><span class="checkmark">✓</span>Customer Support</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">40%</div>
+                        <div class="metric-label"><span class="checkmark">✓</span>More Appointments</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">60%</div>
+                        <div class="metric-label"><span class="checkmark">✓</span>Reduced Manual Work</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">100%</div>
+                        <div class="metric-label"><span class="checkmark">✓</span>Auto Follow-ups</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label"><span class="checkmark">✓</span>Missed Leads</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-title">📌 Key Services Automated</div>
+                <div class="flow-step">
+                    <div class="step-number">💇</div>
+                    <div class="step-content">
+                        <h3>Haircuts & Styling</h3>
+                        <p>From ₹500 - Premium appointments with top stylists</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">🎨</div>
+                    <div class="step-content">
+                        <h3>Hair Coloring & Treatments</h3>
+                        <p>Balayage, Keratin, Hair Smoothening with before/after consultation</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">💄</div>
+                    <div class="step-content">
+                        <h3>Bridal & Makeup Services</h3>
+                        <p>Complete wedding packages with specialized consultation</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-number">💅</div>
+                    <div class="step-content">
+                        <h3>Beauty & Nail Services</h3>
+                        <p>Facials, threading, manicure, pedicure with package deals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>TONI&GUY Gokul Plots, Hyderabad | WhatsApp Automation Solution | 🎯 Real-time Demo</p>
+        </div>
+    </div>
+
+    <script>
+        const demoData = {
+            1: {
+                name: 'New Customer',
+                messages: [
+                    { type: 'ai', text: 'Welcome to TONI&GUY Gokul Plots ✨\n\nOur haircut services start from ₹500 depending on stylist level.\n\nWould you like to:\n1️⃣ Book Appointment\n2️⃣ View Services\n3️⃣ Speak with Reception' },
+                    { type: 'customer', text: '1️⃣ Book Appointment' },
+                    { type: 'ai', text: 'Great! Let\'s book your appointment.\n\nPlease share:\n👤 Your Name' },
+                    { type: 'customer', text: 'Sarah' },
+                    { type: 'ai', text: 'Hi Sarah! 👋\n\nPreferred date? (e.g., Tomorrow, Next week)' },
+                    { type: 'customer', text: 'Tomorrow at 3 PM' },
+                    { type: 'ai', text: '✅ Perfect! Your appointment is confirmed.\n\n📅 Date: Tomorrow\n⏰ Time: 3:00 PM\n💇 Service: Haircut\n\nReply CONFIRM to confirm or RESCHEDULE' }
+                ]
+            },
+            2: {
+                name: 'Hair Color Lead',
+                messages: [
+                    { type: 'ai', text: 'Great choice! ✨\n\nTo recommend the right package, please share:\n\n📸 A photo of your current hair' },
+                    { type: 'customer', text: '[Photo shared]' },
+                    { type: 'ai', text: '📏 Hair Length?\n• Short\n• Medium\n• Long' },
+                    { type: 'customer', text: 'Medium' },
+                    { type: 'ai', text: '💰 Our Balayage packages:\n\n🥇 Premium: ₹5,000 (2.5 hrs)\n🥈 Classic: ₹3,500 (2 hrs)\n🥉 Basic: ₹2,000 (1.5 hrs)\n\nA specialist will contact you shortly!' }
+                ]
+            },
+            3: {
+                name: 'Bridal Services',
+                messages: [
+                    { type: 'ai', text: 'Congratulations on your upcoming wedding 💍\n\nPlease share:\n\n• Wedding Date' },
+                    { type: 'customer', text: '15th June' },
+                    { type: 'ai', text: 'Event Type?\n• Mehendi\n• Sangeet\n• Wedding\n• Reception' },
+                    { type: 'customer', text: 'Wedding' },
+                    { type: 'ai', text: '💰 Expected Budget?\n• ₹10,000 - ₹25,000\n• ₹25,000 - ₹50,000\n• ₹50,000+' },
+                    { type: 'customer', text: '₹25,000 - ₹50,000' },
+                    { type: 'ai', text: '✨ Perfect! Our bridal specialist Ms. Priya will call you tomorrow.\n\n🎯 She\'ll customize your complete bridal package!\n\nReply CONFIRM or call us at 040-XXXX-XXXX' }
+                ]
+            },
+            4: {
+                name: 'Appointment Reminder',
+                messages: [
+                    { type: 'ai', text: 'Hi Sarah 👋\n\nThis is a reminder of your appointment at TONI&GUY Gokul Plots.\n\n📅 Date: Tomorrow\n⏰ Time: 3:00 PM\n💇 Stylist: Vikram\n\nReply:\n1️⃣ Confirm\n2️⃣ Reschedule' },
+                    { type: 'customer', text: '1️⃣ Confirm' },
+                    { type: 'ai', text: '✅ Confirmed! We\'re excited to see you tomorrow at 3:00 PM!\n\n📍 TONI&GUY Gokul Plots, Hyderabad' }
+                ]
+            },
+            5: {
+                name: 'Missed Call Recovery',
+                messages: [
+                    { type: 'ai', text: 'Sorry we missed your call 😔\n\nHow can we assist you today?\n\n1️⃣ Book Appointment\n2️⃣ Service Pricing\n3️⃣ Bridal Services\n4️⃣ Hair Consultation' },
+                    { type: 'customer', text: '2️⃣ Service Pricing' },
+                    { type: 'ai', text: '💇 HAIRCUTS: ₹500 - ₹2,000\n🎨 COLORING: ₹2,000 - ₹5,000\n💄 FACIALS: ₹1,500 - ₹3,000\n💅 NAILS: ₹800 - ₹2,000\n💍 BRIDAL: ₹25,000+\n\nReply BOOK to schedule!' }
+                ]
+            },
+            6: {
+                name: 'Reactivation Campaign',
+                messages: [
+                    { type: 'ai', text: 'Hi Sarah 👋\n\nIt\'s been a while since your last visit.\n\nEnjoy 15% OFF on selected hair services this week! 🎁\n\nServices included:\n✨ Hair Color\n✨ Treatments\n✨ Styling\n\nReply BOOK to reserve your slot' },
+                    { type: 'customer', text: 'BOOK' },
+                    { type: 'ai', text: 'Awesome! 🎉\n\nLet\'s get you back to looking amazing.\n\nPreferred date & time?' },
+                    { type: 'customer', text: 'This Friday at 5 PM' },
+                    { type: 'ai', text: '✅ Booked! Your 15% discount appointment is confirmed.\n\n📅 Friday\n⏰ 5:00 PM\n🎁 Discount: 15% OFF\n\nSee you soon! 💅' }
+                ]
+            }
+        };
+
+        function addMessage(chatId, type, action) {
+            const chatBody = document.getElementById(`chat${chatId}`);
+            const messages = demoData[chatId].messages;
+            
+            chatBody.innerHTML = '';
+            
+            messages.forEach((msg, index) => {
+                setTimeout(() => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `${msg.type}-msg message`;
+                    msgDiv.innerHTML = `<div class="bubble">${msg.text}</div>`;
+                    chatBody.appendChild(msgDiv);
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }, index * 800);
+            });
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            
+            document.querySelectorAll('.slide-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
